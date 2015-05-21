@@ -17,12 +17,12 @@ cabal-version:       >=1.10
 
 executable hasked
   main-is:             Main.hs
-  other-modules:       Data.Zipper
+  other-modules:       Data.ListLike.Base,
+                       Data.ListLike.Zipper
 
   -- other-extensions:
   build-depends:       base >=4.7 && <4.9,
                        containers==0.5.6.3,
-                       ListLike==4.2.0,
                        QuickCheck==2.8.1
 
   hs-source-dirs:      src

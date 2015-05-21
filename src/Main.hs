@@ -1,6 +1,6 @@
 module Main where
 
-import Data.Zipper
+import Data.ListLike.Zipper
 
 main :: IO ()
 main = return ()
