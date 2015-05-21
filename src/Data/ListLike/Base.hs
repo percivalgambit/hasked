@@ -9,6 +9,8 @@ module Data.ListLike.Base (ListLike(..)) where
 import Prelude hiding (null, head, tail, map, reverse)
 
 import qualified Data.List as List
+import qualified Data.Sequence as Seq
+import qualified Data.Foldable as Foldable
 
 class (Monoid (list item)) => ListLike list item where
 
@@ -65,3 +67,20 @@ instance ListLike [] a where
     reverse = List.reverse
     toList = id
     fromList = id
+
+instance ListLike Seq.Seq a where
+    empty = Seq.empty
+    singleton  = Seq.singleton
+    cons = (Seq.<|)
+    snoc = (Seq.|>)
+    append = (Seq.><)
+    head l = case (Seq.viewl l) of
+        x Seq.:< _ -> x
+    tail l = case (Seq.viewl l) of
+        _ Seq.:< xs -> xs
+        Seq.EmptyL -> empty
+    null = Seq.null
+    map f = fromList . toList . fmap f
+    reverse = Seq.reverse
+    toList = Foldable.toList
+    fromList = Seq.fromList

@@ -19,6 +19,7 @@ executable hasked
   main-is:             Main.hs
   other-modules:       Data.ListLike.Base,
                        Data.ListLike.Zipper
+                       Model.Buffer
 
   -- other-extensions:
   build-depends:       base >=4.7 && <4.9,
