@@ -1,6 +1,8 @@
 {-# LANGUAGE ExistentialQuantification #-}
 {-# LANGUAGE StandaloneDeriving #-}
 
+-- Copied from Data.List.Zipper on Hackage to make a more genric version
+
 module Data.Zipper where
 
 import qualified Data.ListLike.Base as LL
