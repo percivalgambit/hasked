@@ -21,6 +21,9 @@ newBufferFromFile file =  newIORef =<< Z.fromListLike <$> LLIO.hGetContents file
 getBuffer :: MBuffer -> IO Buffer
 getBuffer = readIORef
 
+writeBufferToFile :: FilePath -> Buffer -> IO ()
+writeBufferToFile path = LLIO.writeFile path . toListLike
+
 bLeft, bRight :: ModifyBuffer
 bLeft  = flip modifyIORef' Z.left
 bRight = flip modifyIORef' Z.right
