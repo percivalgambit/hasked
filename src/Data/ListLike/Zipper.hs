@@ -8,10 +8,9 @@
 module Data.ListLike.Zipper where
 
 import qualified Data.ListLike.Base as LL
-import Data.ListLike.Instances
 
 import Control.Monad (liftM2)
-import Test.QuickCheck (Arbitrary(..), CoArbitrary(..), Gen)
+import Test.QuickCheck (Arbitrary(..), CoArbitrary(..))
 
 data Zipper full = forall item. LL.ListLike full item => Zip !full !full
 

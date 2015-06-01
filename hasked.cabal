@@ -4,29 +4,49 @@
 name:                hasked
 version:             0.1.0.0
 synopsis:            A text editor
+homepage:            https://github.com/percivalgambit/hasked
 -- description:
 license:             BSD3
 license-file:        LICENSE
 author:              Lee Ehudin
 maintainer:          percivalgambit@gmail.com
--- copyright:
 category:            Text
 build-type:          Simple
 extra-source-files:  README.md
 cabal-version:       >=1.10
 
-executable hasked
-  main-is:             Main.hs
-  -- other-modules:
+source-repository head
+  type:                git
+  location:            https://github.com/percivalgambit/hasked.git
+
+library
+  hs-source-dirs:      src
+  exposed-modules:     Data.ListLike.Zipper,
+                       Model.Buffer
   other-extensions:    ExistentialQuantification,
                        StandaloneDeriving,
                        UndecidableInstances
-
   build-depends:       base >=4.7 && <4.9,
                        containers ==0.5.6.3,
-                       hscurses ==1.4.2.0,
+                       lens ==4.11,
                        ListLike ==4.2.0,
                        QuickCheck ==2.8.1
-
-  hs-source-dirs:      src
   default-language:    Haskell2010
+  ghc-options:         -Wall
+
+executable hasked
+  main-is:             Main.hs
+  build-depends:       base >=4.7 && <4.9,
+                       hasked
+  default-language:    Haskell2010
+
+test-suite test-hasked
+  hs-source-dirs:      test
+  main-is:             TestHasked.hs
+  type:                exitcode-stdio-1.0
+  build-depends:       base >=4.7 && <4.9,
+                       hasked,
+                       hspec ==2.1.7,
+                       QuickCheck ==2.8.1
+  default-language:    Haskell2010
+  ghc-options:         -Wall

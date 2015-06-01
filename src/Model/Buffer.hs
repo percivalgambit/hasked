@@ -2,11 +2,12 @@ module Model.Buffer where
 
 import Data.ListLike.Zipper as Z
 
-import Data.Functor
-import Data.IORef
+import Data.Functor ((<$>))
+import Data.IORef (newIORef, modifyIORef', readIORef, IORef)
+import Data.ListLike.Instances ()
 import qualified Data.ListLike.IO as LLIO
-import Data.Sequence
-import System.IO
+import Data.Sequence (Seq)
+import System.IO (Handle)
 
 type Buffer       = Zipper (Seq Char)
 type MBuffer      = IORef Buffer
