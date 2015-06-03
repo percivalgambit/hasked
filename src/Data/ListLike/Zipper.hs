@@ -5,7 +5,11 @@
 -- Copied from ListZipper on Hackage to make a more genric version
 -- https://hackage.haskell.org/package/ListZipper
 
-module Data.ListLike.Zipper where
+module Data.ListLike.Zipper (Zipper(..), empty, fromListLike, fromListLikeEnd,
+                             toListLike, beginp, endp, emptyp, start, end,
+                             cursor, safeCursor, left, right, insert, delete,
+                             push, pop, replace, reversez, foldrz, foldlz,
+                             foldlz') where
 
 import qualified Data.ListLike.Base as LL
 

@@ -1,36 +1,32 @@
-module Model.Buffer where
+module Model.Buffer (newBuffer, newBufferFromFile, writeBufferToFile,
+                     left, right, upLine, downLine, insert, delete) where
 
-import Data.ListLike.Zipper as Z
+import qualified Data.ListLike.Zipper as Z
 
-import Data.Functor ((<$>))
-import Data.IORef (newIORef, modifyIORef', readIORef, IORef)
+import Data.IORef (newIORef, IORef)
 import Data.ListLike.Instances ()
-import qualified Data.ListLike.IO as LLIO
 import Data.Sequence (Seq)
-import System.IO (Handle)
 
-type Buffer       = Zipper (Seq Char)
-type MBuffer      = IORef Buffer
-type ModifyBuffer = MBuffer -> IO ()
+type Line   = Seq Char
+type Buffer = Z.Zipper (Seq Line)
 
-newBuffer :: IO MBuffer
+newBuffer :: IO (IORef Buffer)
 newBuffer = newIORef Z.empty
 
-newBufferFromFile :: Handle -> IO MBuffer
-newBufferFromFile file =  newIORef =<< Z.fromListLike <$> LLIO.hGetContents file
+newBufferFromFile :: FilePath -> IO (IORef Buffer)
+newBufferFromFile = undefined
 
-getBuffer :: MBuffer -> IO Buffer
-getBuffer = readIORef
+writeBufferToFile :: FilePath -> IORef Buffer -> IO ()
+writeBufferToFile = undefined
 
-writeBufferToFile :: FilePath -> Buffer -> IO ()
-writeBufferToFile path = LLIO.writeFile path . toListLike
+left, right, upLine, downLine :: IORef Buffer -> IO ()
+left = undefined
+right = undefined
+upLine = undefined
+downLine = undefined
 
-bLeft, bRight :: ModifyBuffer
-bLeft  = flip modifyIORef' Z.left
-bRight = flip modifyIORef' Z.right
+insert :: Char -> IORef Buffer -> IO ()
+insert = undefined
 
-bInsert :: Char -> ModifyBuffer
-bInsert c = flip modifyIORef' (Z.insert c)
-
-bDelete :: ModifyBuffer
-bDelete = flip modifyIORef' Z.delete
+delete :: IORef Buffer -> IO ()
+delete = undefined
