@@ -5,28 +5,33 @@ import qualified Data.ListLike.Zipper as Z
 
 import Data.IORef (newIORef, IORef)
 import Data.ListLike.Instances ()
-import Data.Sequence (Seq)
+import qualified Data.Sequence as S
 
-type Line   = Seq Char
-type Buffer = Z.Zipper (Seq Line)
+type Line    = S.Seq Char
+type Lines   = S.Seq Line
+type Buffer  = Z.Zipper Lines
+type MBuffer = IORef Buffer
 
-newBuffer :: IO (IORef Buffer)
+newBuffer :: IO MBuffer
 newBuffer = newIORef Z.empty
 
-newBufferFromFile :: FilePath -> IO (IORef Buffer)
-newBufferFromFile = undefined
+newBufferFromFile :: FilePath -> IO MBuffer
+newBufferFromFile filepath = newIORef
+                             =<< Z.zip . S.fromList . seqLines
+                             <$> readFile filepath where
+    seqLines = (fmap . fmap) S.fromList lines
 
-writeBufferToFile :: FilePath -> IORef Buffer -> IO ()
+writeBufferToFile :: FilePath -> MBuffer -> IO ()
 writeBufferToFile = undefined
 
-left, right, upLine, downLine :: IORef Buffer -> IO ()
+left, right, upLine, downLine :: MBuffer -> IO ()
 left = undefined
 right = undefined
 upLine = undefined
 downLine = undefined
 
-insert :: Char -> IORef Buffer -> IO ()
+insert :: Char -> MBuffer -> IO ()
 insert = undefined
 
-delete :: IORef Buffer -> IO ()
+delete :: MBuffer -> IO ()
 delete = undefined

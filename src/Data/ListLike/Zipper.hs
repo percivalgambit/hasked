@@ -1,19 +1,24 @@
 {-# LANGUAGE ExistentialQuantification #-}
 {-# LANGUAGE StandaloneDeriving #-}
 {-# LANGUAGE UndecidableInstances #-}
+{-# LANGUAGE FlexibleInstances #-}
+{-# LANGUAGE MultiParamTypeClasses #-}
 
 -- Copied from ListZipper on Hackage to make a more genric version
 -- https://hackage.haskell.org/package/ListZipper
 
 module Data.ListLike.Zipper (Zipper(..), empty, fromListLike, fromListLikeEnd,
-                             toListLike, beginp, endp, emptyp, start, end,
-                             cursor, safeCursor, left, right, insert, delete,
-                             push, pop, replace, reversez, foldrz, foldlz,
-                             foldlz') where
+                             toListLike, zip, zipEnd, unzip, beginp, endp,
+                             emptyp, start, end, cursor, safeCursor, left, right,
+                             insert, delete, push, pop, replace, reversez,
+                             foldrz, foldlz, foldlz') where
+
+import Prelude hiding (zip, unzip)
 
 import qualified Data.ListLike.Base as LL
 
 import Control.Monad (liftM2)
+import Control.Newtype (Newtype(..))
 import Test.QuickCheck (Arbitrary(..), CoArbitrary(..))
 
 data Zipper full = forall item. LL.ListLike full item => Zip !full !full
@@ -30,6 +35,10 @@ instance (LL.ListLike full item, Arbitrary full) => Arbitrary (Zipper full) wher
 instance CoArbitrary full => CoArbitrary (Zipper full) where
     coarbitrary (Zip ls rs) = coarbitrary rs . coarbitrary ls
 
+instance (LL.ListLike full item) => Newtype (Zipper full) full where
+    pack   = zip
+    unpack = unzip
+
 empty :: (LL.ListLike full item) => Zipper full
 empty = Zip LL.empty LL.empty
 
@@ -41,6 +50,15 @@ fromListLikeEnd as = Zip (LL.reverse as) LL.empty
 
 toListLike :: (LL.ListLike full item) => Zipper full -> full
 toListLike (Zip ls rs) = LL.reverse ls `LL.append` rs
+
+zip :: (LL.ListLike full item) => full -> Zipper full
+zip = fromListLike
+
+zipEnd :: (LL.ListLike full item) => full -> Zipper full
+zipEnd = fromListLikeEnd
+
+unzip :: (LL.ListLike full item) => Zipper full -> full
+unzip = toListLike
 
 beginp :: Zipper full -> Bool
 beginp (Zip ls _) = LL.null ls
