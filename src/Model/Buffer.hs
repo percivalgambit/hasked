@@ -3,8 +3,12 @@ module Model.Buffer (newBuffer, newBufferFromFile, writeBufferToFile,
 
 import qualified Data.ListLike.Zipper as Z
 
-import Data.IORef (newIORef, IORef)
+import Control.Category ((>>>))
+import Control.Lens.Lens ((<&>))
+import Data.IORef (newIORef, readIORef, IORef)
 import Data.ListLike.Instances ()
+import qualified Data.ListLike.IO as LLIO
+import qualified Data.ListLike.String as LLS
 import qualified Data.Sequence as S
 
 type Line    = S.Seq Char
@@ -16,13 +20,14 @@ newBuffer :: IO MBuffer
 newBuffer = newIORef Z.empty
 
 newBufferFromFile :: FilePath -> IO MBuffer
-newBufferFromFile filepath = newIORef
-                             =<< Z.zip . S.fromList . seqLines
-                             <$> readFile filepath where
-    seqLines = (fmap . fmap) S.fromList lines
+newBufferFromFile filepath = LLIO.readFile filepath
+                             <&> (LLS.lines >>> Z.zip)
+                             >>= newIORef
 
 writeBufferToFile :: FilePath -> MBuffer -> IO ()
-writeBufferToFile = undefined
+writeBufferToFile filepath buffer = readIORef buffer
+                                    <&> (Z.unzip >>> LLS.unlines)
+                                    >>= LLIO.writeFile filepath
 
 left, right, upLine, downLine :: MBuffer -> IO ()
 left = undefined
