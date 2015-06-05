@@ -1,9 +1,6 @@
 {-# LANGUAGE ExistentialQuantification #-}
 {-# LANGUAGE StandaloneDeriving #-}
 {-# LANGUAGE UndecidableInstances #-}
-{-# LANGUAGE FlexibleInstances #-}
-{-# LANGUAGE MultiParamTypeClasses #-}
-{-# LANGUAGE TypeFamilies #-}
 
 -- Copied from ListZipper on Hackage to make a more genric version
 -- https://hackage.haskell.org/package/ListZipper
@@ -19,8 +16,8 @@ import Prelude hiding (zip, unzip)
 import qualified Data.ListLike.Base as LL
 
 import Control.Monad (liftM2)
-import Control.Lens.Iso (iso)
-import Control.Lens.Wrapped (Wrapped(..), Rewrapped)
+import Control.Lens.Empty (AsEmpty(..))
+import Control.Lens.Prism (nearly)
 import Test.QuickCheck (Arbitrary(..), CoArbitrary(..))
 
 data Zipper full = forall item. LL.ListLike full item => Zip !full !full
@@ -37,10 +34,8 @@ instance (LL.ListLike full item, Arbitrary full) => Arbitrary (Zipper full) wher
 instance CoArbitrary full => CoArbitrary (Zipper full) where
     coarbitrary (Zip ls rs) = coarbitrary rs . coarbitrary ls
 
-instance (LL.ListLike full item, t ~ Zipper full') => Rewrapped (Zipper full) t
-instance LL.ListLike full item => Wrapped (Zipper full) where
-    type Unwrapped (Zipper full) = full
-    _Wrapped' = iso unzip zip
+instance LL.ListLike full item => AsEmpty (Zipper full) where
+    _Empty = nearly empty emptyp
 
 empty :: (LL.ListLike full item) => Zipper full
 empty = Zip LL.empty LL.empty

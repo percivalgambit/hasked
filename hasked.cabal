@@ -26,9 +26,7 @@ library
   other-extensions:    ExistentialQuantification,
                        StandaloneDeriving,
                        UndecidableInstances,
-                       FlexibleInstances,
-                       MultiParamTypeClasses,
-                       TypeFamilies
+                       TemplateHaskell
   build-depends:       base >=4.7 && <4.9,
                        containers ==0.5.6.3,
                        lens ==4.11,
