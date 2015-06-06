@@ -5,7 +5,7 @@
 -- Copied from ListZipper on Hackage to make a more genric version
 -- https://hackage.haskell.org/package/ListZipper
 
-module Data.ListLike.Zipper (Zipper(..), empty, fromListLike, fromListLikeEnd,
+module Data.ListLike.Zipper (Zipper, empty, fromListLike, fromListLikeEnd,
                              toListLike, zip, zipEnd, unzip, beginp, endp,
                              emptyp, start, end, cursor, safeCursor, left, right,
                              insert, delete, push, pop, replace, reversez,

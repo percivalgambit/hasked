@@ -5,10 +5,10 @@ module Model.Buffer (newBuffer, newBufferFromFile, writeBufferToFile,
 
 import qualified Data.ListLike.Zipper as Z
 
-import Control.Lens.Empty (_Empty)
 import Control.Lens.Extras (is)
 import Control.Lens.Getter (to)
 import Control.Lens.Operators ((^.), (&), (.~), (%~), (-~), (+~))
+import Control.Lens.Prism (matching, _Nothing, _Just)
 import Control.Lens.TH (makeLenses)
 import Data.IORef (newIORef, readIORef, modifyIORef', IORef)
 import Data.ListLike.Instances ()
@@ -22,7 +22,7 @@ type Lines        = S.Seq Line
 
 data Buffer       = Buffer
     { _textLines   :: Z.Zipper Lines
-    , _focusedLine :: FocusedLine
+    , _focusedLine :: Maybe FocusedLine
     , _linePos     :: Int
     } deriving Show
 makeLenses ''Buffer
@@ -32,31 +32,29 @@ type ModifyBuffer = MBuffer -> IO ()
 focusLine :: ModifyBuffer
 focusLine = flip modifyIORef' $ \frozenBuffer ->
     frozenBuffer & focusedLine %~ \line ->
-        if is _Empty line
-        then frozenBuffer^.textLines
-                          .to Z.cursor
-                          .to Z.zip
-                          .to (iterate Z.right)
-                          .to (!! (frozenBuffer^.linePos))
+        if is _Nothing line
+        then Just $ frozenBuffer^.textLines
+                                 .to Z.cursor
+                                 .to Z.zip
+                                 .to (iterate Z.right)
+                                 .to (!! (frozenBuffer^.linePos))
         else line
 
 flushFocusedLine :: ModifyBuffer
 flushFocusedLine = flip modifyIORef' $ \frozenBuffer ->
-    if is _Empty $ frozenBuffer^.focusedLine
-    then frozenBuffer
-    else frozenBuffer
-            & textLines   .~ Z.replace (frozenBuffer^.focusedLine.to Z.unzip)
-                                       (frozenBuffer^.textLines)
-            & focusedLine .~ Z.empty
+    case matching _Just $ frozenBuffer^.focusedLine of
+        Right focus -> frozenBuffer & textLines .~ Z.replace (Z.unzip focus)
+                                                             (frozenBuffer^.textLines)
+                                    & focusedLine .~ Nothing
+        Left  _     -> frozenBuffer
 
 newBuffer :: IO MBuffer
-newBuffer = newIORef $ Buffer Z.empty Z.empty 0
+newBuffer = newIORef $ Buffer Z.empty Nothing 0
 
 newBufferFromFile :: FilePath -> IO MBuffer
 newBufferFromFile filepath = do
     fileLines <- Z.zip . LLS.lines <$> LLIO.readFile filepath
-    let focus = Z.zip $ Z.cursor fileLines
-    newIORef $ Buffer fileLines focus 0
+    newIORef $ Buffer fileLines Nothing 0
 
 writeBufferToFile :: FilePath -> ModifyBuffer
 writeBufferToFile filepath buffer = do
@@ -71,13 +69,13 @@ left, right, upLine, downLine :: ModifyBuffer
 left buffer = do
     focusLine buffer
     modifyIORef' buffer $ \frozenBuffer ->
-        frozenBuffer & focusedLine %~ Z.left
+        frozenBuffer & focusedLine %~ fmap Z.left
                      & linePos -~ 1
 
 right buffer = do
     focusLine buffer
     modifyIORef' buffer $ \frozenBuffer ->
-        frozenBuffer & focusedLine %~ Z.right
+        frozenBuffer & focusedLine %~ fmap Z.right
                      & linePos +~ 1
 
 upLine buffer = do
@@ -94,12 +92,12 @@ insert :: Char -> ModifyBuffer
 insert c buffer = do
     focusLine buffer
     modifyIORef' buffer $ \frozenBuffer ->
-        frozenBuffer & focusedLine %~ Z.insert c
+        frozenBuffer & focusedLine %~ fmap (Z.insert c)
                      & linePos +~ 1
 
 delete :: ModifyBuffer
 delete buffer = do
     focusLine buffer
     modifyIORef' buffer $ \frozenBuffer ->
-        frozenBuffer & focusedLine %~ Z.delete
+        frozenBuffer & focusedLine %~ fmap Z.delete
                      & linePos -~ 1
