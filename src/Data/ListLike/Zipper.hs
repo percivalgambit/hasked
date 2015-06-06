@@ -7,11 +7,11 @@
 
 module Data.ListLike.Zipper (Zipper, empty, fromListLike, fromListLikeEnd,
                              toListLike, zip, zipEnd, unzip, beginp, endp,
-                             emptyp, start, end, cursor, safeCursor, left, right,
-                             insert, delete, push, pop, replace, reversez,
-                             foldrz, foldlz, foldlz') where
+                             emptyp, length, start, end, cursor, safeCursor,
+                             left, right, insert, delete, push, pop, replace,
+                             reversez, foldrz, foldlz, foldlz') where
 
-import Prelude hiding (zip, unzip)
+import Prelude hiding (zip, unzip, length)
 
 import qualified Data.ListLike.FunctorLL as FLL
 
@@ -71,6 +71,9 @@ endp (Zip _ rs) = LL.null rs
 
 emptyp :: Zipper full -> Bool
 emptyp (Zip ls rs) = LL.null ls && LL.null rs
+
+length :: Zipper full -> Int
+length (Zip ls rs) = LL.length ls + LL.length rs
 
 start, end :: Zipper full -> Zipper full
 start (Zip ls rs) = Zip LL.empty (LL.reverse ls `LL.append` rs)
