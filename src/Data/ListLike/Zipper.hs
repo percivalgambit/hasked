@@ -13,6 +13,8 @@ module Data.ListLike.Zipper (Zipper(..), empty, fromListLike, fromListLikeEnd,
 
 import Prelude hiding (zip, unzip)
 
+import qualified Data.ListLike.FunctorLL as FLL
+
 import qualified Data.ListLike.Base as LL
 
 import Control.Monad (liftM2)
@@ -36,6 +38,9 @@ instance CoArbitrary full => CoArbitrary (Zipper full) where
 
 instance LL.ListLike full item => AsEmpty (Zipper full) where
     _Empty = nearly empty emptyp
+
+instance FLL.FunctorLL Zipper where
+    fmap f (Zip ls rs) = Zip (f ls) (f rs)
 
 empty :: (LL.ListLike full item) => Zipper full
 empty = Zip LL.empty LL.empty
