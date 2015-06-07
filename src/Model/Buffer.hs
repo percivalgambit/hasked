@@ -44,8 +44,8 @@ focusLine buf = buf & focusedLine %~ \line -> case line of
 flushFocusedLine :: Buffer -> Buffer
 flushFocusedLine buf = case buf^.focusedLine of
     Just focus
-        | Z.endp focus ->
-            buf & textLines   .~ Z.push (Z.unzip focus) (buf^.textLines)
+        | Z.endp (buf^.textLines) ->
+            buf & textLines   .~ Z.insert (Z.unzip focus) (buf^.textLines)
                 & focusedLine .~ Nothing
         | otherwise    ->
             buf & textLines   .~ Z.replace (Z.unzip focus) (buf^.textLines)
@@ -92,7 +92,8 @@ newBufferFromFile filepath = do
 
 writeBufferToFile :: FilePath -> ModifyBuffer
 writeBufferToFile filepath buffer = do
-    frozenBuffer <- flushFocusedLine <$> readIORef buffer
+    modifyIORef' buffer flushFocusedLine
+    frozenBuffer <- readIORef buffer
     frozenBuffer^.textLines
                  .to Z.unzip
                  .to LLS.unlines
@@ -104,7 +105,8 @@ setScreenSize scrSize buffer = modifyIORef' buffer $ \frozenBuffer ->
 
 getScreen :: MBuffer -> IO String
 getScreen buffer = do
-    frozenBuffer <- flushFocusedLine <$> readIORef buffer
+    modifyIORef' buffer flushFocusedLine
+    frozenBuffer <- readIORef buffer
     let scrSize = frozenBuffer^.screenSize
     return $ frozenBuffer^.textLines
                           .to Z.unzip
@@ -131,12 +133,18 @@ downLine buffer = modifyIORef' buffer $ \frozenBuffer ->
 
 insert :: Char -> ModifyBuffer
 insert c buffer
-    | c == '\n' = modifyIORef' buffer $ \frozenBuffer ->
+    | c == '\n' || c == '\r' = modifyIORef' buffer $ \frozenBuffer ->
         frozenBuffer & flushFocusedLine
-                     & textLines %~ Z.insert S.empty
+                     & insertNewline
                      & incCursorYPos
+    | c == '\DEL' = delete buffer
     | otherwise = modifyIORef' buffer $ \frozenBuffer ->
         frozenBuffer & focusLine & focusedLine %~ fmap (Z.push c) & incCursorXPos
+
+insertNewline :: Buffer -> Buffer
+insertNewline buffer = buffer & textLines %~ \lines' ->
+    if | Z.endp lines' -> Z.push S.empty lines'
+       | otherwise     -> Z.right lines' & Z.insert S.empty
 
 delete :: ModifyBuffer
 delete buffer = modifyIORef' buffer $ \frozenBuffer ->

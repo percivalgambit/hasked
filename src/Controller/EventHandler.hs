@@ -18,6 +18,7 @@ handleEvents buffer = do
             KeyUp        -> upLine buffer
             KeyLeft      -> left buffer
             KeyRight     -> right buffer
+            KeyEnter     -> insert '\n' buffer
             _            -> return ()
         cursorPos <- getCursorPos buffer
         getScreen buffer >>= updateText cursorPos
