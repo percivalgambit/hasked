@@ -2,7 +2,7 @@
 {-# LANGUAGE MultiWayIf #-}
 
 module Model.Buffer (newBuffer, newBufferFromFile, writeBufferToFile,
-                     left, right, upLine, downLine, insert, delete,
+                     left, right, upLine, downLine, insert, delete, insertNewline,
                      setScreenSize, getScreen, getCursorPos, MBuffer) where
 
 import qualified Data.ListLike.Zipper as Z
@@ -132,19 +132,17 @@ downLine buffer = modifyIORef' buffer $ \frozenBuffer ->
     frozenBuffer & flushFocusedLine & textLines %~ Z.right & incCursorYPos
 
 insert :: Char -> ModifyBuffer
-insert c buffer
-    | c == '\n' || c == '\r' = modifyIORef' buffer $ \frozenBuffer ->
-        frozenBuffer & flushFocusedLine
-                     & insertNewline
-                     & incCursorYPos
-    | c == '\DEL' = delete buffer
-    | otherwise = modifyIORef' buffer $ \frozenBuffer ->
-        frozenBuffer & focusLine & focusedLine %~ fmap (Z.push c) & incCursorXPos
+insert c buffer = modifyIORef' buffer $ \frozenBuffer ->
+    frozenBuffer & focusLine & focusedLine %~ fmap (Z.push c) & incCursorXPos
 
-insertNewline :: Buffer -> Buffer
-insertNewline buffer = buffer & textLines %~ \lines' ->
-    if | Z.endp lines' -> Z.push S.empty lines'
-       | otherwise     -> Z.right lines' & Z.insert S.empty
+insertNewline :: ModifyBuffer
+insertNewline buffer = modifyIORef' buffer $ \frozenBuffer ->
+    frozenBuffer & flushFocusedLine
+                 & mkNewline
+                 & incCursorYPos where
+        mkNewline buf = buf & textLines %~ \lines' ->
+            if | Z.endp lines' -> Z.push S.empty lines'
+               | otherwise     -> Z.right lines' & Z.insert S.empty
 
 delete :: ModifyBuffer
 delete buffer = modifyIORef' buffer $ \frozenBuffer ->
