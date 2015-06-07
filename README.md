@@ -1,4 +1,6 @@
 # hasked
 A text editor written in Haskell
 
-The design document for hasked can be found here: https://goo.gl/6xpOCL
+To install the dependencies for this application, DO NOT run `cabal install`.
+There are dependencies for ncurses that will throw an error if not installed in
+order.  To install the dependencies correctly, run `make setup`

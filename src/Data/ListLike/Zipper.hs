@@ -51,7 +51,7 @@ fromListLike = Zip LL.empty
 fromListLikeEnd :: (LL.ListLike full item) => full -> Zipper full
 fromListLikeEnd as = Zip (LL.reverse as) LL.empty
 
-toListLike :: (LL.ListLike full item) => Zipper full -> full
+toListLike :: Zipper full -> full
 toListLike (Zip ls rs) = LL.reverse ls `LL.append` rs
 
 zip :: (LL.ListLike full item) => full -> Zipper full
@@ -60,7 +60,7 @@ zip = fromListLike
 zipEnd :: (LL.ListLike full item) => full -> Zipper full
 zipEnd = fromListLikeEnd
 
-unzip :: (LL.ListLike full item) => Zipper full -> full
+unzip :: Zipper full -> full
 unzip = toListLike
 
 beginp :: Zipper full -> Bool
