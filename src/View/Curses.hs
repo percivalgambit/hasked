@@ -1,16 +1,15 @@
 module View.Curses (updateText, getScreenSize, withCurses) where
 
 import Control.Exception (bracket_)
-import UI.HSCurses.Curses (stdScr, getYX, scrSize, wAddStr, refresh, wclear)
+import UI.HSCurses.Curses (stdScr, scrSize, wAddStr, refresh, wclear)
 import UI.HSCurses.CursesHelper (drawCursor, gotoTop, start, end)
 
-updateText :: String -> IO ()
-updateText str = do
-    (y, x) <- getYX stdScr
+updateText :: (Int, Int) -> String -> IO ()
+updateText cursorPos str = do
     gotoTop
     wclear stdScr
     wAddStr stdScr str
-    drawCursor (0,0) (y,x)
+    drawCursor (0,0) cursorPos
     refresh
 
 getScreenSize :: IO (Int, Int)

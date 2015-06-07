@@ -1,7 +1,7 @@
 module Controller.EventHandler (handleEvents) where
 
 import Model.Buffer (left, right, upLine, downLine, insert, delete, getScreen,
-                     MBuffer)
+                     getCursorPos, MBuffer)
 import View.Curses (updateText)
 
 import Control.Monad (unless)
@@ -19,5 +19,6 @@ handleEvents buffer = do
             KeyLeft      -> left buffer
             KeyRight     -> right buffer
             _            -> return ()
-        getScreen buffer >>= updateText
+        cursorPos <- getCursorPos buffer
+        getScreen buffer >>= updateText cursorPos
         handleEvents buffer

@@ -31,7 +31,8 @@ library
                        StandaloneDeriving,
                        FlexibleInstances,
                        UndecidableInstances,
-                       TemplateHaskell
+                       TemplateHaskell,
+                       MultiWayIf
   build-depends:       base >=4.7 && <4.9,
                        containers ==0.5.6.3,
                        hscurses ==1.4.2.0,
