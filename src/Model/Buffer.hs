@@ -106,15 +106,14 @@ setScreenSize scrSize buffer = modifyIORef' buffer $ \frozenBuffer ->
 
 getScreen :: MBuffer -> IO String
 getScreen buffer = do
-    modifyIORef' buffer flushFocusedLine
     frozenBuffer <- readIORef buffer
     let scrSize = frozenBuffer^.screenSize
-    return $ frozenBuffer^.textLines
-                          .to Z.unzip
-                              & LL.take (scrSize^._1)
-                              & fmap (LL.take $ scrSize^._2)
-                              & LLS.unlines
-                              & LLS.toString
+    return $ (flushFocusedLine frozenBuffer)^.textLines
+                                             .to Z.unzip
+                                                & LL.take (scrSize^._1)
+                                                & fmap (LL.take $ scrSize^._2)
+                                                & LLS.unlines
+                                                & LLS.toString
 
 getCursorPos :: MBuffer -> IO (Int, Int)
 getCursorPos buffer = readIORef buffer <&> view cursorPos
@@ -137,13 +136,13 @@ insert c buffer = modifyIORef' buffer $ \frozenBuffer ->
     frozenBuffer & focusLine & focusedLine %~ fmap (Z.push c) & incCursorXPos
 
 insertNewline :: ModifyBuffer
-insertNewline buffer = modifyIORef' buffer $ \frozenBuffer ->
-    frozenBuffer & flushFocusedLine
-                 & mkNewline
-                 & incCursorYPos where
-        mkNewline buf = buf & textLines %~ \lines' ->
-            if | Z.endp lines' -> Z.push S.empty lines'
-               | otherwise     -> Z.right lines' & Z.insert S.empty
+insertNewline buffer = modifyIORef' buffer $ \frozenBuffer -> do
+    let lineRest = maybe S.empty Z.getRight (frozenBuffer^.focusedLine)
+    frozenBuffer & focusedLine %~ fmap Z.dropRight
+                 & flushFocusedLine
+                 & textLines %~ (\lines' -> Z.right lines' & Z.insert lineRest)
+                 & cursorPos._2 .~ 0
+                 & incCursorYPos
 
 delete :: ModifyBuffer
 delete buffer = modifyIORef' buffer $ \frozenBuffer ->
