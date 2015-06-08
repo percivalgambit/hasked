@@ -3,7 +3,8 @@
 
 module Model.Buffer (newBuffer, newBufferFromFile, writeBufferToFile,
                      left, right, upLine, downLine, insert, delete, insertNewline,
-                     setScreenSize, getScreen, getCursorPos, MBuffer) where
+                     setScreenSize, getScreen, getCursorPos, Line, FocusedLine,
+                     Lines, Buffer, MBuffer, ModifyBuffer) where
 
 import qualified Data.ListLike.Zipper as Z
 
