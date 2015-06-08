@@ -13,6 +13,7 @@ import Control.Lens.Getter (to, view)
 import Control.Lens.Operators ((^.), (&), (<&>), (.~), (%~), (^?))
 import Control.Lens.TH (makeLenses)
 import Control.Lens.Tuple (_1, _2)
+import Data.Functor ((<$>)) -- needed for base <4.8
 import Data.IORef (newIORef, readIORef, modifyIORef', IORef)
 import Data.ListLike.Instances ()
 import qualified Data.ListLike.Base as LL

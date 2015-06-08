@@ -14,14 +14,15 @@ escape    = '\ESC'
 
 handleKey :: Key -> ModifyBuffer
 handleKey (KeyChar c)
-    | c == backspace = delete
-    | c == enter     = insertNewline
-    | otherwise      = insert c
-handleKey KeyDown    = downLine
-handleKey KeyUp      = upLine
-handleKey KeyLeft    = left
-handleKey KeyRight   = right
-handleKey _          = const $ return ()
+    | c == backspace   = delete
+    | c == enter       = insertNewline
+    | otherwise        = insert c
+handleKey KeyDown      = downLine
+handleKey KeyUp        = upLine
+handleKey KeyLeft      = left
+handleKey KeyRight     = right
+handleKey KeyBackspace = delete
+handleKey _            = const $ return ()
 
 handleEvents :: MBuffer -> IO ()
 handleEvents buffer = do
