@@ -146,4 +146,14 @@ insertNewline buffer = modifyIORef' buffer $ \frozenBuffer -> do
 
 delete :: ModifyBuffer
 delete buffer = modifyIORef' buffer $ \frozenBuffer ->
-    frozenBuffer & focusLine & focusedLine %~ fmap Z.pop & decCursorXPos
+    if | frozenBuffer^.cursorPos._2 == 0 ->
+            frozenBuffer & flushFocusedLine & textLines %~ \lines' ->
+                case Z.safeCursor lines' of
+                    Just line -> Z.delete lines' & Z.left & cursorAppend line
+                    Nothing   -> Z.left lines'
+       | otherwise ->
+            frozenBuffer & focusLine & focusedLine %~ fmap Z.pop & decCursorXPos
+    where
+        cursorAppend line lines' = case Z.safeCursor lines' of
+            Just line' -> Z.replace (line' `LL.append` line) lines'
+            Nothing -> Z.insert line lines'
