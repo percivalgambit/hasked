@@ -34,7 +34,7 @@ library
                        TemplateHaskell,
                        MultiWayIf
   build-depends:       base >=4.7 && <4.9,
-                       containers,
+                       containers >=0.5.5.1 && <0.5.7,
                        hscurses ==1.4.2.0,
                        lens ==4.11,
                        ListLike ==4.2.0,

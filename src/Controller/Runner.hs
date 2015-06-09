@@ -1,14 +1,13 @@
 module Controller.Runner (hasked) where
 
-import Model.Buffer (newBuffer, setScreenSize, getScreen, getCursorPos)
+import Model.Buffer (newBuffer, getScreen, getCursorPos)
 import View.Curses (updateText, getScreenSize, withCurses)
 import Controller.EventHandler (handleEvents)
 
 hasked :: IO ()
 hasked = withCurses $ do
     buffer <- newBuffer
-    scrSize <- getScreenSize
-    setScreenSize scrSize buffer
+    screenSize <- getScreenSize
     cursorPos <- getCursorPos buffer
-    getScreen buffer >>= updateText cursorPos
-    handleEvents buffer
+    getScreen screenSize buffer >>= updateText cursorPos
+    handleEvents screenSize buffer

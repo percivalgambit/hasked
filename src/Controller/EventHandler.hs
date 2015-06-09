@@ -24,11 +24,11 @@ handleKey KeyRight     = right
 handleKey KeyBackspace = delete
 handleKey _            = const $ return ()
 
-handleEvents :: MBuffer -> IO ()
-handleEvents buffer = do
+handleEvents :: (Int, Int) -> MBuffer -> IO ()
+handleEvents screenSize buffer = do
     key <- getCh
     unless (key == KeyChar escape) $ do
         handleKey key buffer
         cursorPos <- getCursorPos buffer
-        getScreen buffer >>= updateText cursorPos
-        handleEvents buffer
+        getScreen screenSize buffer >>= updateText cursorPos
+        handleEvents screenSize buffer

@@ -1,6 +1,6 @@
 all: .setup-complete
 
-.PHONY: hasked run build test clean
+.PHONY: hasked run build test clean unsetup
 
 hasked: run
 
@@ -16,10 +16,14 @@ test: setup
 clean:
 	cabal clean
 
+unsetup:
+	rm -f .setup-complete
+	-cabal sandbox delete
+
 setup: .setup-complete
 
 .setup-complete:
 	cabal update
-	cabal sandbox init
+	-cabal sandbox init
 	cabal install --only-dependencies --enable-tests
 	touch $@

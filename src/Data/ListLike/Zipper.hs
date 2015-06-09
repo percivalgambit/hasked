@@ -7,7 +7,7 @@
 
 module Data.ListLike.Zipper (Zipper, empty, fromListLike, fromListLikeEnd,
                              toListLike, zip, zipEnd, unzip, beginp, endp,
-                             emptyp, length, getLeft, getRight, dropLeft,
+                             emptyp, length, position, getLeft, getRight, dropLeft,
                              dropRight, start, end, cursor, safeCursor, left,
                              right, insert, delete, push, pop, replace, reversez,
                              foldrz, foldlz, foldlz') where
@@ -75,6 +75,9 @@ emptyp (Zip ls rs) = LL.null ls && LL.null rs
 
 length :: Zipper full -> Int
 length (Zip ls rs) = LL.length ls + LL.length rs
+
+position :: Zipper full -> Int
+position (Zip ls _) = LL.length ls
 
 getLeft, getRight :: Zipper full -> full
 getLeft  (Zip ls _) = ls
