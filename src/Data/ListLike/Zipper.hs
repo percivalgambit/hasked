@@ -80,7 +80,7 @@ position :: Zipper full -> Int
 position (Zip ls _) = LL.length ls
 
 getLeft, getRight :: Zipper full -> full
-getLeft  (Zip ls _) = ls
+getLeft  (Zip ls _) = LL.reverse ls
 getRight (Zip _ rs) = rs
 
 dropLeft, dropRight :: Zipper full -> Zipper full
