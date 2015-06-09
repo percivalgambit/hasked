@@ -14,7 +14,7 @@ updateText (cursorY, cursorX) (screenY, _) str = do
     gotoTop
     wclear stdScr
     wAddStr stdScr str
-    drawCursor (0,0) (cursorY `mod` (screenY-1), cursorX)
+    drawCursor (0,0) (cursorY `mod` max (screenY-1) 1, cursorX)
     refresh
 
 -- Wrapper around scrSize so we don't need to import Ncurses in the Runner

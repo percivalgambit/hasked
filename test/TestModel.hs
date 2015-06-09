@@ -75,7 +75,7 @@ modelTests = do
                 b <- newBuffer
                 insertString s b
                 mapM_ (flip move b) ms
-                s' <- getScreen (length s, length s) b
+                s' <- getScreen (length s + 2, length s + 2) b
                 if | null s'   -> s' `shouldBe` s
                    | otherwise -> s' `shouldBe` s ++ "\n"
 

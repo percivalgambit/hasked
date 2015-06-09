@@ -12,7 +12,7 @@ author:              Lee Ehudin
 maintainer:          percivalgambit@gmail.com
 category:            Text
 build-type:          Simple
-extra-source-files:  README.md
+extra-source-files:  README.md, .gitignore, Makefile
 cabal-version:       >=1.10
 
 source-repository head

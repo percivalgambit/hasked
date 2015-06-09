@@ -35,6 +35,7 @@ data Buffer        = Buffer
     , _saveFile    :: Maybe FilePath  -- Filepath this buffer is associated with
     } deriving Show
 makeLenses ''Buffer
+
 type MBuffer       = IORef Buffer     -- Mutable buffer
 type ModifyMBuffer = MBuffer -> IO () -- Action to modify a mutable buffer
 type ModifyBuffer  = Buffer -> Buffer -- Action to 'modify' an immutable buffer
@@ -43,9 +44,8 @@ type ModifyBuffer  = Buffer -> Buffer -- Action to 'modify' an immutable buffer
 -- the specified position on the line.  If there is no focus, load an empty line
 focusLine :: Int -> ModifyBuffer
 focusLine linePos buf = buf & focusedLine .~
-    buf^.textLines.to Z.safeCursor.to (\focus -> case focus of
-        Nothing    -> Z.empty
-        Just line  -> iterate Z.right (Z.zip line) ^?! ix linePos)
+    buf^.textLines.to Z.safeCursor.to (maybe Z.empty zipRight) where
+        zipRight line = iterate Z.right (Z.zip line) ^?! ix linePos
 
 -- Get the current line position from focusedLine, then load the current focus of
 -- textLines into focusedLine with the same line position.  This is useful when
@@ -84,7 +84,7 @@ newBuffer = newIORef $ Buffer Z.empty Z.empty Nothing
 newBufferFromFile :: FilePath -> IO MBuffer
 newBufferFromFile filepath = do
     fileLines <- Z.zip . LLS.lines <$> LLIO.readFile filepath `catch` handler
-    newIORef $ refocusLine $ Buffer fileLines Z.empty (Just filepath) where
+    Buffer fileLines Z.empty (Just filepath) & refocusLine & newIORef where
         handler e
             | isDoesNotExistError e = return LL.empty
             | isAlreadyInUseError e =
@@ -105,9 +105,8 @@ writeBufferToFile buffer = do
     modifyIORef' buffer flushFocusedLine
     frozenBuffer <- readIORef buffer
     case frozenBuffer^.saveFile of
-        Just filepath -> frozenBuffer^.textLines & Z.unzip
-                                                 & LLS.unlines
-                                                 & LLIO.writeFile filepath
+        Just filepath -> frozenBuffer^.textLines
+                            & Z.unzip & LLS.unlines & LLIO.writeFile filepath
         Nothing       -> return ()
 
 -- Given a (y, x) pair that represents the screen size, at most a single screen
@@ -116,16 +115,19 @@ writeBufferToFile buffer = do
 getScreen :: (Int, Int) -> MBuffer -> IO String
 getScreen (y, x) buffer = do
     modifyIORef' buffer flushFocusedLine
-    (y', _) <- getCursorPos buffer
-    let linesBefore = y' `mod` (y-1)
-        linesAfter  = (y-1) - linesBefore
+    (cursorY, _) <- getCursorPos buffer
+    let linesBefore = cursorY `mod` max (y-1) 1
+        linesAfter  = max (y-1) 1 - linesBefore
+
     readIORef buffer <&> \frozenBuffer ->
         frozenBuffer^.textLines
-            & (\lines' -> LL.drop (y'-linesBefore) (Z.getLeft lines')
-                          `LL.append` LL.take linesAfter (Z.getRight lines'))
+            & assembleScreen linesBefore linesAfter cursorY
             & fmap (LL.take x)
             & LLS.unlines
-            & LLS.toString
+            & LLS.toString where
+    assembleScreen linesBefore linesAfter cursorY lines' =
+        LL.drop (cursorY-linesBefore) (Z.getLeft lines')
+            `LL.append` LL.take linesAfter (Z.getRight lines')
 
 -- Using the two Zippers representing the current line in the file (textLines)
 -- and the current position in the line (focusedLine), return the (y, x) coordinates
@@ -146,20 +148,20 @@ getLinePos buffer = buffer^.focusedLine & Z.position
 left :: ModifyMBuffer
 left buffer = modifyIORef' buffer $ \frozenBuffer -> do
     let focus = frozenBuffer^.focusedLine
-    let lines' = frozenBuffer^.textLines
+        lines' = frozenBuffer^.textLines
     if | Z.beginp focus && not (Z.beginp lines') ->
-        frozenBuffer & textLines %~ Z.left & focusLineEnd
-       | otherwise      -> frozenBuffer & focusedLine %~ Z.left
+            frozenBuffer & textLines %~ Z.left & focusLineEnd
+       | otherwise -> frozenBuffer & focusedLine %~ Z.left
 
 -- Move the cursor one position to the right.  If the cursor is at the end of a
 -- line, it will move up to the beginning of the next line, if there is one.
 right :: ModifyMBuffer
 right buffer = modifyIORef' buffer $ \frozenBuffer -> do
     let focus  = frozenBuffer^.focusedLine
-    let lines' = frozenBuffer^.textLines
+        lines' = frozenBuffer^.textLines
     if | Z.endp focus && not (Z.endp lines') ->
-        frozenBuffer & textLines %~ Z.right & focusLineBeginning
-       | otherwise    -> frozenBuffer & focusedLine %~ Z.right
+            frozenBuffer & textLines %~ Z.right & focusLineBeginning
+       | otherwise -> frozenBuffer & focusedLine %~ Z.right
 
 -- Move the cursor one line up, if possible
 upLine :: ModifyMBuffer
@@ -186,10 +188,11 @@ insertNewline buffer = modifyIORef' buffer $ \frozenBuffer -> do
     let lineRest = frozenBuffer^.focusedLine & Z.getRight
     frozenBuffer & focusedLine %~ Z.dropRight
                  & flushFocusedLine
-                 & textLines %~ (\lines' ->
-                    if | Z.endp lines' -> Z.push LL.empty lines'
-                       | otherwise     -> Z.right lines' & Z.insert lineRest)
-                 & focusLineBeginning
+                 & textLines %~ mkNewline lineRest
+                 & focusLineBeginning where
+    mkNewline lineRest lines'
+        | Z.endp lines' = Z.push LL.empty lines'
+        | otherwise     = Z.right lines' & Z.insert lineRest
 
 -- Delete the character to the left of the cursor, if there is one.  If the cursor
 -- is at the beginning of a line, it will delete the newline, causing the contents
@@ -205,11 +208,8 @@ delete buffer = modifyIORef' buffer $ \frozenBuffer -> do
                      & focusLineEnd
                      & textLines %~ cursorAppend (Z.unzip focus)
                      & refocusLine
-       | otherwise -> frozenBuffer & focusedLine %~ Z.pop
-    where
-        deleteNewline lines' = case Z.safeCursor lines' of
-            Just _  -> Z.delete lines' & Z.left
-            Nothing -> Z.left lines'
-        cursorAppend line lines' = case Z.safeCursor lines' of
-            Just line' -> Z.replace (line' `LL.append` line) lines'
-            Nothing -> Z.insert line lines'
+       | otherwise -> frozenBuffer & focusedLine %~ Z.pop where
+            deleteNewline lines'= Z.delete lines' & Z.left
+            cursorAppend line lines' = case Z.safeCursor lines' of
+                Just line' -> Z.replace (line' `LL.append` line) lines'
+                Nothing    -> Z.insert line lines'
