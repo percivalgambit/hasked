@@ -7,9 +7,10 @@
 
 module Data.ListLike.Zipper (Zipper, empty, fromListLike, fromListLikeEnd,
                              toListLike, zip, zipEnd, unzip, beginp, endp,
-                             emptyp, length, start, end, cursor, safeCursor,
-                             left, right, insert, delete, push, pop, replace,
-                             reversez, foldrz, foldlz, foldlz') where
+                             emptyp, length, position, getLeft, getRight, dropLeft,
+                             dropRight, start, end, cursor, safeCursor, left,
+                             right, insert, delete, push, pop, replace, reversez,
+                             foldrz, foldlz, foldlz') where
 
 import Prelude hiding (zip, unzip, length)
 
@@ -51,7 +52,7 @@ fromListLike = Zip LL.empty
 fromListLikeEnd :: (LL.ListLike full item) => full -> Zipper full
 fromListLikeEnd as = Zip (LL.reverse as) LL.empty
 
-toListLike :: (LL.ListLike full item) => Zipper full -> full
+toListLike :: Zipper full -> full
 toListLike (Zip ls rs) = LL.reverse ls `LL.append` rs
 
 zip :: (LL.ListLike full item) => full -> Zipper full
@@ -60,7 +61,7 @@ zip = fromListLike
 zipEnd :: (LL.ListLike full item) => full -> Zipper full
 zipEnd = fromListLikeEnd
 
-unzip :: (LL.ListLike full item) => Zipper full -> full
+unzip :: Zipper full -> full
 unzip = toListLike
 
 beginp :: Zipper full -> Bool
@@ -74,6 +75,17 @@ emptyp (Zip ls rs) = LL.null ls && LL.null rs
 
 length :: Zipper full -> Int
 length (Zip ls rs) = LL.length ls + LL.length rs
+
+position :: Zipper full -> Int
+position (Zip ls _) = LL.length ls
+
+getLeft, getRight :: Zipper full -> full
+getLeft  (Zip ls _) = ls
+getRight (Zip _ rs) = rs
+
+dropLeft, dropRight :: Zipper full -> Zipper full
+dropLeft  (Zip _ rs) = Zip LL.empty rs
+dropRight (Zip ls _) = Zip ls LL.empty
 
 start, end :: Zipper full -> Zipper full
 start (Zip ls rs) = Zip LL.empty (LL.reverse ls `LL.append` rs)

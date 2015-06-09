@@ -23,14 +23,19 @@ library
   hs-source-dirs:      src
   exposed-modules:     Data.ListLike.Zipper,
                        Data.ListLike.FunctorLL,
-                       Model.Buffer
+                       Model.Buffer,
+                       View.Curses,
+                       Controller.EventHandler,
+                       Controller.Runner
   other-extensions:    ExistentialQuantification,
                        StandaloneDeriving,
                        FlexibleInstances,
                        UndecidableInstances,
-                       TemplateHaskell
+                       TemplateHaskell,
+                       MultiWayIf
   build-depends:       base >=4.7 && <4.9,
-                       containers ==0.5.6.3,
+                       containers >=0.5.5.1 && <0.5.7,
+                       hscurses ==1.4.2.0,
                        lens ==4.11,
                        ListLike ==4.2.0,
                        QuickCheck ==2.8.1
