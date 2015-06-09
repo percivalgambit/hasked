@@ -9,12 +9,12 @@ import UI.HSCurses.CursesHelper (drawCursor, gotoTop, start, end)
 
 -- Takes in a new cursor position and text to fill the screen with and refreshes
 -- the screen with that text and moves the cursor
-updateText :: (Int, Int) -> String -> IO ()
-updateText cursorPos str = do
+updateText :: (Int, Int) -> (Int, Int) -> String -> IO ()
+updateText (cursorY, cursorX) (screenY, _) str = do
     gotoTop
     wclear stdScr
     wAddStr stdScr str
-    drawCursor (0,0) cursorPos
+    drawCursor (0,0) (cursorY `mod` (screenY-1), cursorX)
     refresh
 
 -- Wrapper around scrSize so we don't need to import Ncurses in the Runner

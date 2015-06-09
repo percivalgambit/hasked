@@ -112,16 +112,20 @@ writeBufferToFile buffer = do
 
 -- Given a (y, x) pair that represents the screen size, at most a single screen
 -- worth of the buffer will be returned in the form of a string, meant to be
--- displayed in the terminal.
+-- displayed in the terminal.  The screen displayed will follow the cursor.
 getScreen :: (Int, Int) -> MBuffer -> IO String
 getScreen (y, x) buffer = do
     modifyIORef' buffer flushFocusedLine
+    (y', _) <- getCursorPos buffer
+    let linesBefore = y' `mod` (y-1)
+        linesAfter  = (y-1) - linesBefore
     readIORef buffer <&> \frozenBuffer ->
-        frozenBuffer^.textLines & Z.unzip
-                                & LL.take y
-                                & fmap (LL.take x)
-                                & LLS.unlines
-                                & LLS.toString
+        frozenBuffer^.textLines
+            & (\lines' -> LL.drop (y'-linesBefore) (Z.getLeft lines')
+                          `LL.append` LL.take linesAfter (Z.getRight lines'))
+            & fmap (LL.take x)
+            & LLS.unlines
+            & LLS.toString
 
 -- Using the two Zippers representing the current line in the file (textLines)
 -- and the current position in the line (focusedLine), return the (y, x) coordinates

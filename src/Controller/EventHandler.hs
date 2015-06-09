@@ -41,5 +41,5 @@ handleEvents screenSize buffer = do
     unless (key == KeyChar escape || key == KeyChar close) $ do
         handleKey key buffer
         cursorPos <- getCursorPos buffer
-        getScreen screenSize buffer >>= updateText cursorPos
+        getScreen screenSize buffer >>= updateText cursorPos screenSize
         handleEvents screenSize buffer

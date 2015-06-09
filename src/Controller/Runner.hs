@@ -20,6 +20,6 @@ hasked = withCurses $ do
     buffer <- maybe newBuffer newBufferFromFile (listToMaybe args)
     screenSize <- getScreenSize
     cursorPos <- getCursorPos buffer
-    getScreen screenSize buffer >>= updateText cursorPos
+    getScreen screenSize buffer >>= updateText cursorPos screenSize
     handleEvents screenSize buffer
     writeBufferToFile buffer
