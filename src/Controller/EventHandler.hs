@@ -1,13 +1,12 @@
 module Controller.EventHandler (handleEvents) where
 
 import Model.Buffer (left, right, upLine, downLine, insert, delete, insertNewline,
-                     getScreen, getCursorPos, MBuffer, ModifyMBuffer)
+                     getScreen, getCursorPos, writeBufferToFile, MBuffer,
+                     ModifyMBuffer)
 import View.Curses (updateText)
 
 import Control.Monad (unless)
 import UI.HSCurses.Curses (getCh, Key(..))
-
-import System.IO
 
 backspace, enter, escape, save, close :: Char
 backspace = '\DEL'
@@ -20,6 +19,7 @@ handleKey :: Key -> ModifyMBuffer
 handleKey (KeyChar c)
     | c == backspace   = delete
     | c == enter       = insertNewline
+    | c == save        = writeBufferToFile
     | otherwise        = insert c
 handleKey KeyDown      = downLine
 handleKey KeyUp        = upLine
@@ -35,5 +35,4 @@ handleEvents screenSize buffer = do
         handleKey key buffer
         cursorPos <- getCursorPos buffer
         getScreen screenSize buffer >>= updateText cursorPos
-        hPutStrLn stderr (show key)
         handleEvents screenSize buffer

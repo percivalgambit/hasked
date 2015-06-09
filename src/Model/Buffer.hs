@@ -8,6 +8,7 @@ module Model.Buffer (newBuffer, newBufferFromFile, writeBufferToFile,
 
 import qualified Data.ListLike.Zipper as Z
 
+import Control.Exception (catch)
 import Control.Lens.At (ix)
 import Control.Lens.Getter (to)
 import Control.Lens.Operators ((^.), (&), (<&>), (.~), (%~), (^?!))
@@ -19,6 +20,7 @@ import Data.Sequence (Seq)
 import qualified Data.ListLike.Base as LL
 import qualified Data.ListLike.IO as LLIO
 import qualified Data.ListLike.String as LLS
+import System.IO.Error (isAlreadyInUseError, isDoesNotExistError, isPermissionError)
 
 type Line          = Seq Char
 type FocusedLine   = Z.Zipper Line
@@ -27,6 +29,7 @@ type Lines         = Seq Line
 data Buffer        = Buffer
     { _textLines   :: Z.Zipper Lines
     , _focusedLine :: FocusedLine
+    , _saveFile    :: Maybe FilePath
     } deriving Show
 makeLenses ''Buffer
 type MBuffer       = IORef Buffer -- mutable buffer
@@ -55,32 +58,42 @@ flushFocusedLine buf = buf & textLines %~ \lines' ->
     focus = buf^.focusedLine & Z.unzip
 
 newBuffer :: IO MBuffer
-newBuffer = newIORef $ Buffer Z.empty Z.empty
+newBuffer = newIORef $ Buffer Z.empty Z.empty Nothing
 
 newBufferFromFile :: FilePath -> IO MBuffer
 newBufferFromFile filepath = do
-    fileLines <- Z.zip . LLS.lines <$> LLIO.readFile filepath
-    newIORef $ refocusLine $ Buffer fileLines Z.empty
+    fileLines <- Z.zip . LLS.lines <$> LLIO.readFile filepath `catch` handler
+    newIORef $ refocusLine $ Buffer fileLines Z.empty (Just filepath) where
+        handler e
+            | isDoesNotExistError e = return LL.empty
+            | isAlreadyInUseError e =
+                error $ "File " ++ filepath ++ " is already in use: " ++ show e
+            | isPermissionError   e =
+                error $ "You do not have permission to open " ++ filepath ++ ": "
+                        ++ show e
+            | otherwise             =
+                error $ "There was an error when opening " ++ filepath ++ ": "
+                        ++ show e
 
-writeBufferToFile :: FilePath -> ModifyMBuffer
-writeBufferToFile filepath buffer = do
+writeBufferToFile :: ModifyMBuffer
+writeBufferToFile buffer = do
     modifyIORef' buffer flushFocusedLine
     frozenBuffer <- readIORef buffer
-    frozenBuffer^.textLines
-                 .to Z.unzip
-                 .to LLS.unlines
-                 .to (LLIO.writeFile filepath)
+    case frozenBuffer^.saveFile of
+        Just filepath -> frozenBuffer^.textLines & Z.unzip
+                                                 & LLS.unlines
+                                                 & LLIO.writeFile filepath
+        Nothing       -> return ()
 
 getScreen :: (Int, Int) -> MBuffer -> IO String
 getScreen (y, x) buffer = do
     modifyIORef' buffer flushFocusedLine
     readIORef buffer <&> \frozenBuffer ->
-        frozenBuffer^.textLines
-                     .to Z.unzip
-                        & LL.take y
-                        & fmap (LL.take x)
-                        & LLS.unlines
-                        & LLS.toString
+        frozenBuffer^.textLines & Z.unzip
+                                & LL.take y
+                                & fmap (LL.take x)
+                                & LLS.unlines
+                                & LLS.toString
 
 getCursorPos :: MBuffer -> IO (Int, Int)
 getCursorPos buffer = readIORef buffer <&> \frozenBuffer -> do
