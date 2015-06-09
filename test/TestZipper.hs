@@ -138,6 +138,6 @@ zipperTests = describe "The Zipper data type" $ do
                 if | Z.endp z  -> return ()
                    | otherwise -> Z.cursor (Z.replace c z) `shouldBe` c
 
-    prop "reverse will reverse the underlying ListLike type" $
+    prop "reversez will reverse the underlying ListLike type" $
         \(z :: Z.Zipper String) ->
             (Z.toListLike $ Z.reversez z) `shouldBe` (LL.reverse $ Z.toListLike z)
