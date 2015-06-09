@@ -1,7 +1,7 @@
 module Controller.EventHandler (handleEvents) where
 
 import Model.Buffer (left, right, upLine, downLine, insert, delete, insertNewline,
-                     getScreen, getCursorPos, MBuffer, ModifyBuffer)
+                     getScreen, getCursorPos, MBuffer, ModifyMBuffer)
 import View.Curses (updateText)
 
 import Control.Monad (unless)
@@ -12,7 +12,7 @@ backspace = '\DEL'
 enter     = '\r'
 escape    = '\ESC'
 
-handleKey :: Key -> ModifyBuffer
+handleKey :: Key -> ModifyMBuffer
 handleKey (KeyChar c)
     | c == backspace   = delete
     | c == enter       = insertNewline
