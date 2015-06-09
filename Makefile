@@ -5,7 +5,11 @@ all: .setup-complete
 hasked: run
 
 run: setup
+ifdef FILE
+	cabal run $(FILE)
+else
 	cabal run
+endif
 
 build: setup
 	cabal build

@@ -2,6 +2,9 @@
 {-# LANGUAGE StandaloneDeriving #-}
 {-# LANGUAGE UndecidableInstances #-}
 
+-- Author: Lee Ehudin
+-- Contains the polymorphic Zipper type for ListLike instances
+
 -- Copied from ListZipper on Hackage to make a more genric version
 -- https://hackage.haskell.org/package/ListZipper
 
@@ -12,15 +15,15 @@ module Data.ListLike.Zipper (Zipper, empty, fromListLike, fromListLikeEnd,
                              right, insert, delete, push, pop, replace, reversez,
                              foldrz, foldlz, foldlz') where
 
-import Prelude hiding (zip, unzip, length)
+import Prelude hiding (length, zip, unzip)
 
 import qualified Data.ListLike.FunctorLL as FLL
 
 import qualified Data.ListLike.Base as LL
 
-import Control.Monad (liftM2)
 import Control.Lens.Empty (AsEmpty(..))
 import Control.Lens.Prism (nearly)
+import Control.Monad (liftM2)
 import Test.QuickCheck (Arbitrary(..), CoArbitrary(..))
 
 -- Polymorphic Zipper type that represents a zipper with a focus on the head
