@@ -4,7 +4,8 @@
 module Controller.Runner (hasked) where
 
 import Controller.EventHandler (handleEvents)
-import Model.Buffer (newBuffer, newBufferFromFile, getScreen, getCursorPos)
+import Model.Buffer (newBuffer, newBufferFromFile, writeBufferToFile, getScreen,
+                     getCursorPos)
 import View.Curses (updateText, getScreenSize, withCurses)
 
 import Data.Maybe (listToMaybe)
@@ -21,3 +22,4 @@ hasked = withCurses $ do
     cursorPos <- getCursorPos buffer
     getScreen screenSize buffer >>= updateText cursorPos
     handleEvents screenSize buffer
+    writeBufferToFile buffer
