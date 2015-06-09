@@ -43,9 +43,11 @@ zipperTests = describe "The Zipper data type" $ do
        \ Zipper from an empty ListLike type" $
         Z.fromListLike (LL.empty :: String) `shouldBe` Z.empty
 
-    prop "zip and unzip are synonyms for fromListLike and toListLike" $
+    prop "zip, zipEnd, and unzip are synonyms for fromListLike, fromListLikeEnd,\
+         \ and toListLike" $
         \(a :: String) (z :: Z.Zipper String) -> do
             Z.zip a `shouldBe` Z.fromListLike a
+            Z.zipEnd a `shouldBe` Z.fromListLikeEnd a
             Z.unzip z `shouldBe` Z.toListLike z
 
     prop "fromListLike will start a zipper at the beginning of the ListLike" $
@@ -128,21 +130,21 @@ zipperTests = describe "The Zipper data type" $ do
             zipLeft (LL.length a + 1) a `shouldSatisfy` Z.beginp
 
     prop "delete is the reverse of insert" $
-        \(z :: Z.Zipper String) (c :: Char) -> Z.delete (Z.insert c z) `shouldBe` z
+        \(z :: Z.Zipper String) c -> Z.delete (Z.insert c z) `shouldBe` z
 
     prop "pop is the reverse of push" $
-        \(z :: Z.Zipper String) (c :: Char) -> Z.pop (Z.push c z) `shouldBe` z
+        \(z :: Z.Zipper String) c -> Z.pop (Z.push c z) `shouldBe` z
 
     prop "insert will add an element that will become the new cursor" $
-        \(z :: Z.Zipper String) (c :: Char) -> Z.cursor (Z.insert c z) `shouldBe` c
+        \(z :: Z.Zipper String) c -> Z.cursor (Z.insert c z) `shouldBe` c
 
     prop "push will add an element before the current cursor" $
-        \(z :: Z.Zipper String) (c :: Char) ->
+        \(z :: Z.Zipper String) c ->
             (Z.cursor $ Z.left $ Z.push c z) `shouldBe` c
 
     prop "replace will replace the current focus with an element, if the current\
          \ focus is not off the end of the ListLike" $
-            \(z :: Z.Zipper String) (c :: Char) ->
+            \(z :: Z.Zipper String) c ->
                 if | Z.endp z  -> return ()
                    | otherwise -> Z.cursor (Z.replace c z) `shouldBe` c
 
