@@ -1,10 +1,12 @@
 {-# LANGUAGE TemplateHaskell #-}
 {-# LANGUAGE MultiWayIf #-}
 
-module Model.Buffer (newBuffer, newBufferFromFile, writeBufferToFile,
-                     left, right, upLine, downLine, insert, delete, insertNewline,
-                     getScreen, getCursorPos, Line, FocusedLine,
-                     Lines, Buffer, MBuffer, ModifyMBuffer, ModifyBuffer) where
+-- Author: Lee Ehudin
+-- Defines a Buffer data type that stores the text that the editor is modifying
+
+module Model.Buffer (MBuffer, ModifyMBuffer, newBuffer, newBufferFromFile,
+                     writeBufferToFile, left, right, upLine, downLine, insert,
+                     delete, insertNewline, getScreen, getCursorPos) where
 
 import qualified Data.ListLike.Zipper as Z
 

@@ -1,6 +1,9 @@
 {-# LANGUAGE ScopedTypeVariables #-}
 {-# LANGUAGE MultiWayIf #-}
 
+-- Author: Lee Ehudin
+-- Defines tests for the Zipper data type
+
 module TestZipper (zipperTests) where
 
 import qualified Data.ListLike.Zipper as Z
@@ -14,12 +17,17 @@ import Control.Lens.Empty (_Empty)
 import Control.Lens.Extras (is)
 import qualified Data.ListLike.Base as LL
 
+-- Take a ListLike instance and form a zipper from the front, moved i times
+-- to the right
 zipRight :: LL.ListLike full item => Int -> full -> Z.Zipper full
 zipRight i a = iterate Z.right (Z.fromListLike a) !! i
 
+-- Take a ListLike instance and form a zipper from the back, moved i times
+-- to the left
 zipLeft :: LL.ListLike full item => Int -> full -> Z.Zipper full
 zipLeft i a = iterate Z.left (Z.fromListLikeEnd a) !! i
 
+-- Run tests on the Zipper data type
 zipperTests :: Spec
 zipperTests = describe "The Zipper data type" $ do
     prop "recognizes an empty instance with the _Empty lens" $
