@@ -34,14 +34,23 @@ zipperTests = describe "The Zipper data type" $ do
         \(z :: Z.Zipper String) ->
             is _Empty z `shouldBe` (z == Z.empty || Z.emptyp z)
 
+    it "includes an empty function that i the same thing as creating a\
+       \ Zipper from an empty ListLike type" $
+        Z.fromListLike (LL.empty :: String) `shouldBe` Z.empty
+
+    prop "emptyp tests for an empty Zipper" $ \(z :: Z.Zipper String) ->
+        Z.emptyp z `shouldBe` (z == Z.empty)
+
     prop "toListLike reverses fromListLike and fromListLikeEnd" $
         \(a :: String) -> do
             (Z.toListLike $ Z.fromListLike a) `shouldBe` a
             (Z.toListLike $ Z.fromListLikeEnd a) `shouldBe` a
 
-    it "includes an empty function that i the same thing as creating a\
-       \ Zipper from an empty ListLike type" $
-        Z.fromListLike (LL.empty :: String) `shouldBe` Z.empty
+    prop "fromListLike will start a zipper at the beginning of the ListLike" $
+        \(a :: String) -> Z.fromListLike a `shouldSatisfy` Z.beginp
+
+    prop "fromListLikeEnd will start a zipper at the end of the ListLike" $
+        \(a :: String) -> Z.fromListLikeEnd a `shouldSatisfy` Z.endp
 
     prop "zip, zipEnd, and unzip are synonyms for fromListLike, fromListLikeEnd,\
          \ and toListLike" $
@@ -50,14 +59,9 @@ zipperTests = describe "The Zipper data type" $ do
             Z.zipEnd a `shouldBe` Z.fromListLikeEnd a
             Z.unzip z `shouldBe` Z.toListLike z
 
-    prop "fromListLike will start a zipper at the beginning of the ListLike" $
-        \(a :: String) -> Z.fromListLike a `shouldSatisfy` Z.beginp
-
-    prop "fromListLikeEnd will start a zipper at the end of the ListLike" $
-        \(a :: String) -> Z.fromListLikeEnd a `shouldSatisfy` Z.endp
-
-    prop "emptyp tests for an empty Zipper" $ \(z :: Z.Zipper String) ->
-        Z.emptyp z `shouldBe` (z == Z.empty)
+    prop "combining the right side of the zipper with the left side is the same\
+         \ as getting the underlying ListLike" $ \(z :: Z.Zipper String) ->
+            Z.getLeft z `LL.append` Z.getRight z `shouldBe` Z.toListLike z
 
     prop "the length of a Zipper is just the length of the underlying ListLike" $
         \(a :: String) -> Z.length (Z.fromListLike a) `shouldBe` LL.length a
@@ -72,10 +76,6 @@ zipperTests = describe "The Zipper data type" $ do
 
                 let z' = zipLeft ix a
                 Z.position z' `shouldBe` max 0 (LL.length a - ix)
-
-    prop "combining the right side of the zipper with the left side is the same\
-         \ as getting the underlying ListLike" $ \(z :: Z.Zipper String) ->
-            Z.getLeft z `LL.append` Z.getRight z `shouldBe` Z.toListLike z
 
     prop "dropLeft is the same thing as dropping all of the elements before the\
          \ current position of the focus" $
